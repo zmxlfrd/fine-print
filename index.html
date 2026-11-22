@@ -35,6 +35,10 @@ h2{margin:0 0 18px;font:400 clamp(1.9rem,6vw,2.7rem)/1.1 "Instrument Serif",Geor
 .dl{margin-top:16px;display:flex;justify-content:space-between;align-items:center;gap:12px}
 #like:disabled{opacity:1;color:var(--stamp);border-color:var(--stamp)}
 .hint{margin-top:30px;color:var(--mute);font-size:12px}
+.by{margin-top:44px;padding-top:22px;border-top:1px solid var(--line);color:var(--mute);font-size:13px}
+.by p{margin:0 0 10px}
+.by a{color:var(--ink);text-decoration:underline;text-underline-offset:3px;margin-right:18px}
+.by a:hover{color:var(--mute)}
 </style>
 <script data-goatcounter="https://fine-print.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
@@ -58,6 +62,11 @@ h2{margin:0 0 18px;font:400 clamp(1.9rem,6vw,2.7rem)/1.1 "Instrument Serif",Geor
   </div>
   <div class="dl"><button id="like" type="button" hidden>Like</button><button id="png" type="button" hidden>Download card</button></div>
   <p class="hint">Arrow keys also flip cards.</p>
+
+  <footer class="by">
+    <p>By Alfred Zimo</p>
+    <p><a href="https://www.instagram.com/zmxlfrd.ai/" target="_blank" rel="noopener">Instagram</a><a href="https://medium.com/@zimoalfred" target="_blank" rel="noopener">Medium</a></p>
+  </footer>
 </main>
 
 <script>
