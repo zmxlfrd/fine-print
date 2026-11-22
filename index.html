@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Epiphany Suite: Fine Print</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap">
+<style>
+:root{--page:#121212;--card:#000;--ink:#f4f1ec;--mute:#9a958e;--line:#303030;--stamp:#e0584d;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{background:var(--page);scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--page);color:var(--ink);font:15px/1.7 "IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace}
+main{max-width:760px;margin:0 auto;padding:40px 20px 56px}
+h1{margin:0;font:400 clamp(3rem,13vw,6.5rem)/.95 "Instrument Serif",Georgia,"Times New Roman",serif;letter-spacing:-.02em}
+h1 small{display:block;font-size:.4em;font-style:italic;color:var(--mute);letter-spacing:0;margin-bottom:.35em}
+.tag{margin:22px 0 6px;font:italic 400 1.6rem/1.2 "Instrument Serif",Georgia,serif}
+.desc{margin:0 0 36px;color:var(--mute);max-width:52ch}
+.filters{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:end;margin-bottom:14px;font-size:13px;color:var(--mute)}
+.filters fieldset{border:0;margin:0;padding:0;display:flex;gap:8px;align-items:center}
+.filters legend{float:left;margin-right:8px;padding:0}
+select{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:3px;padding:6px 10px;max-width:100%}
+button{font:inherit;cursor:pointer;color:var(--ink);background:none;border:1px solid var(--line);border-radius:3px;padding:5px 12px}
+button:hover:not(:disabled){border-color:var(--ink)}
+button:disabled{opacity:.3;cursor:default}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.screen{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:clamp(22px,5vw,44px);min-height:360px}
+.meta{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--mute);font-size:13px;margin-bottom:22px}
+.draft{color:var(--stamp);border:1px solid var(--stamp);border-radius:3px;padding:0 7px;margin-left:10px;transform:rotate(-2deg);display:inline-block}
+h2{margin:0 0 18px;font:400 clamp(1.9rem,6vw,2.7rem)/1.1 "Instrument Serif",Georgia,serif}
+.screen p{margin:0 0 1.1em}
+.foot{margin-top:26px;color:var(--mute);font-style:italic}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px}
+.nav button{min-width:56px;font-size:18px}
+.count{color:var(--mute);font-size:13px;text-align:center}
+.dl{margin-top:16px;display:flex;justify-content:flex-end}
+.hint{margin-top:30px;color:var(--mute);font-size:12px}
+</style>
+</head>
+<body>
+<main>
+  <h1><small>The Epiphany Suite:</small>Fine Print</h1>
+  <p class="tag">Short Essays, Long Anxiety</p>
+  <p class="desc">I’m a machine with design flaws, and this is the fine print that came with me. One numbered card at a time. Some of it’s crude, all of it’s true.</p>
+
+  <div class="filters">
+    <label for="jump">Go to card</label>
+    <select id="jump"></select>
+  </div>
+
+  <section class="screen" id="screen" aria-live="polite"></section>
+
+  <div class="nav">
+    <button id="prev" type="button" aria-label="Previous card">&lt;</button>
+    <div class="count" id="count"></div>
+    <button id="next" type="button" aria-label="Next card">&gt;</button>
+  </div>
+  <div class="dl"><button id="png" type="button" hidden>Download card</button></div>
+  <p class="hint">Arrow keys also flip cards.</p>
+</main>
+
+<script>
+// Add new cards here. n = card number, date = YYYY-MM-DD.
+const CARDS = [
+  { n: 1, date: "2026-11-22", title: "Sleep (Sold Separately)", draft: false,
+    body: [
+      "I was issued an eight-hour sleep requirement at birth and have never once met it, and I’m sick of pretending that’s a scheduling problem. It’s a design flaw. A man who can’t fall asleep without first replaying every stupid thing he said in 2011 isn’t “bad at mornings.” He’s a badly assembled piece of shit running on spite and fumes.",
+      "By 3 a.m. my brain goes full crepuscular, which is a fancy word for “active at dusk and dawn like a goddamn raccoon,” and it starts digging through the bins. There I lie, a wide-eyed husk of a man in a bed that cost more than my self-respect, litigating a conversation with a cashier who forgot me before I reached the parking lot."
+    ],
+    foot: "" }
+];
+
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+const fmt = d => new Date(d + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+let list = [], i = 0;
+
+const fmtShort = d => d.slice(5, 7) + "/" + d.slice(8, 10) + "/" + d.slice(0, 4);
+function init() {
+  list = CARDS.slice().sort((a, b) => a.n - b.n);
+  $("jump").innerHTML = list.map((c, k) => '<option value="' + k + '">Card #' + c.n + ": " + fmtShort(c.date) + "</option>").join("");
+  i = list.length - 1;
+  render();
+}
+
+function render() {
+  const s = $("screen");
+  if (!list.length) {
+    s.innerHTML = "<h2>No cards yet</h2><p>Add a card to the CARDS list to get started.</p>";
+    $("count").textContent = "0 cards";
+    $("prev").disabled = $("next").disabled = true;
+    return;
+  }
+  const c = list[i];
+  s.innerHTML =
+    '<div class="meta"><span>Card ' + c.n + (c.draft ? '<span class="draft">Draft</span>' : "") +
+    "</span><span>" + fmt(c.date) + "</span></div>" +
+    "<h2>Clause " + c.n + ": " + esc(c.title) + "</h2>" +
+    c.body.map(p => "<p>" + esc(p) + "</p>").join("") +
+    (c.foot ? '<p class="foot">' + esc(c.foot) + "</p>" : "");
+  $("count").textContent = (i + 1) + " of " + list.length;
+  $("prev").disabled = i === 0;
+  $("next").disabled = i === list.length - 1;
+  $("jump").value = i;
+}
+
+function go(d) {
+  const j = i + d;
+  if (j >= 0 && j < list.length) { i = j; render(); }
+}
+
+const INK = '#f4f1ec', MUTE = '#9a958e';
+const F_SERIF = '"Instrument Serif", Georgia, "Times New Roman", serif';
+const F_MONO = '"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace';
+
+async function cardPng(c) {
+  const W = 1080, P = 88, TW = W - P * 2;
+  try { await Promise.all([document.fonts.load('400 70px "Instrument Serif"'), document.fonts.load('400 30px "IBM Plex Mono"')]); } catch (e) {}
+  const cv = document.createElement('canvas'), x = cv.getContext('2d');
+  const wrap = (t, font) => {
+    x.font = font;
+    const out = []; let line = '';
+    t.split(/\s+/).forEach(w => {
+      const test = line ? line + ' ' + w : w;
+      if (x.measureText(test).width > TW && line) { out.push(line); line = w; } else line = test;
+    });
+    if (line) out.push(line);
+    return out;
+  };
+  const tF = '400 76px ' + F_SERIF, bF = '400 30px ' + F_MONO, fF = 'italic 400 30px ' + F_MONO;
+  const titleLines = wrap('Clause ' + c.n + ': ' + c.title, tF);
+  const paras = c.body.map(p => wrap(p, bF));
+  const footLines = c.foot ? wrap(c.foot, fF) : [];
+  let H = W;
+  const layout = dr => {
+    let y = P + 26;
+    if (dr) {
+      const label = 'Card ' + c.n;
+      x.font = '400 26px ' + F_MONO; x.fillStyle = MUTE; x.textAlign = 'left';
+      x.fillText(label, P, y);
+      if (c.draft) { x.fillStyle = '#e0584d'; x.fillText('Draft', P + x.measureText(label).width + 24, y); }
+      x.fillStyle = MUTE; x.textAlign = 'right'; x.fillText(fmt(c.date), W - P, y); x.textAlign = 'left';
+    }
+    y += 108;
+    titleLines.forEach((l, k) => {
+      if (dr) { x.font = tF; x.fillStyle = INK; x.fillText(l, P, y); }
+      y += k < titleLines.length - 1 ? 84 : 66;
+    });
+    paras.forEach(ls => {
+      ls.forEach(l => { if (dr) { x.font = bF; x.fillStyle = INK; x.fillText(l, P, y); } y += 48; });
+      y += 26;
+    });
+    footLines.forEach(l => { if (dr) { x.font = fF; x.fillStyle = MUTE; x.fillText(l, P, y); } y += 48; });
+    y += 30;
+    if (dr) { x.font = '400 24px ' + F_MONO; x.fillStyle = MUTE; x.fillText('The Epiphany Suite: Fine Print', P, Math.max(y, H - P)); }
+    return y + P;
+  };
+  H = Math.max(W, Math.ceil(layout(false)));
+  cv.width = W; cv.height = H;
+  x.fillStyle = '#000'; x.fillRect(0, 0, W, H);
+  layout(true);
+  return new Promise(res => cv.toBlob(res, 'image/png'));
+}
+
+let dl = null;
+(async () => {
+  try { dl = window.claude && await window.claude.use('downloads'); } catch (e) { dl = null; }
+  if (!dl) dl = { save: async ({ filename, data }) => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(data); a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  } };
+  $('png').hidden = false;
+})();
+
+$('png').onclick = async () => {
+  const b = $('png'), c = list[i];
+  if (!dl || !c) return;
+  const label = b.textContent;
+  b.disabled = true; b.textContent = 'Preparing\u2026';
+  let msg = label;
+  try {
+    const blob = await cardPng(c);
+    await dl.save({ filename: 'fine-print-card-' + c.n + '.png', data: blob });
+  } catch (e) {
+    if (!e || e.code !== 'declined') msg = 'Couldn\u2019t save. Try again.';
+  }
+  b.textContent = msg; b.disabled = false;
+  if (msg !== label) setTimeout(() => { b.textContent = label; }, 2500);
+};
+
+$("prev").onclick = () => go(-1);
+$("next").onclick = () => go(1);
+$("jump").onchange = e => { i = +e.target.value; render(); };
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "SELECT") return;
+  if (e.key === "ArrowLeft") go(-1);
+  if (e.key === "ArrowRight") go(1);
+});
+
+init();
+</script>
+</body>
+</html>
