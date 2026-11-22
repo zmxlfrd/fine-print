@@ -35,6 +35,7 @@ h2{margin:0 0 18px;font:400 clamp(1.9rem,6vw,2.7rem)/1.1 "Instrument Serif",Geor
 .dl{margin-top:16px;display:flex;justify-content:flex-end}
 .hint{margin-top:30px;color:var(--mute);font-size:12px}
 </style>
+<script data-goatcounter="https://fine-print.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
 <body>
 <main>
@@ -103,9 +104,17 @@ function render() {
   $("jump").value = i;
 }
 
+function track(c, prefix) {
+  try {
+    if (c && window.goatcounter && window.goatcounter.count) {
+      window.goatcounter.count({ path: (prefix || 'card-') + c.n, title: 'Clause ' + c.n + ': ' + c.title, event: true });
+    }
+  } catch (e) {}
+}
+
 function go(d) {
   const j = i + d;
-  if (j >= 0 && j < list.length) { i = j; render(); }
+  if (j >= 0 && j < list.length) { i = j; render(); track(list[i]); }
 }
 
 const INK = '#f4f1ec', MUTE = '#9a958e';
@@ -182,6 +191,7 @@ $('png').onclick = async () => {
   try {
     const blob = await cardPng(c);
     await dl.save({ filename: 'fine-print-card-' + c.n + '.png', data: blob });
+    track(c, 'download-card-');
   } catch (e) {
     if (!e || e.code !== 'declined') msg = 'Couldn\u2019t save. Try again.';
   }
@@ -191,7 +201,7 @@ $('png').onclick = async () => {
 
 $("prev").onclick = () => go(-1);
 $("next").onclick = () => go(1);
-$("jump").onchange = e => { i = +e.target.value; render(); };
+$("jump").onchange = e => { i = +e.target.value; render(); track(list[i]); };
 document.addEventListener("keydown", e => {
   if (e.target.tagName === "SELECT") return;
   if (e.key === "ArrowLeft") go(-1);
@@ -199,6 +209,7 @@ document.addEventListener("keydown", e => {
 });
 
 init();
+window.addEventListener('load', () => track(list[i]));
 </script>
 </body>
 </html>
