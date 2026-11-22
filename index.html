@@ -32,7 +32,8 @@ h2{margin:0 0 18px;font:400 clamp(1.9rem,6vw,2.7rem)/1.1 "Instrument Serif",Geor
 .nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px}
 .nav button{min-width:56px;font-size:18px}
 .count{color:var(--mute);font-size:13px;text-align:center}
-.dl{margin-top:16px;display:flex;justify-content:flex-end}
+.dl{margin-top:16px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+#like:disabled{opacity:1;color:var(--stamp);border-color:var(--stamp)}
 .hint{margin-top:30px;color:var(--mute);font-size:12px}
 </style>
 <script data-goatcounter="https://fine-print.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
@@ -55,7 +56,7 @@ h2{margin:0 0 18px;font:400 clamp(1.9rem,6vw,2.7rem)/1.1 "Instrument Serif",Geor
     <div class="count" id="count"></div>
     <button id="next" type="button" aria-label="Next card">&gt;</button>
   </div>
-  <div class="dl"><button id="png" type="button" hidden>Download card</button></div>
+  <div class="dl"><button id="like" type="button" hidden>Like</button><button id="png" type="button" hidden>Download card</button></div>
   <p class="hint">Arrow keys also flip cards.</p>
 </main>
 
@@ -102,7 +103,31 @@ function render() {
   $("prev").disabled = i === 0;
   $("next").disabled = i === list.length - 1;
   $("jump").value = i;
+  paintLike();
 }
+
+const likedNow = new Set();
+const isLiked = n => likedNow.has(n) || (() => {
+  try { return localStorage.getItem('fp-liked-' + n) === '1'; } catch (e) { return false; }
+})();
+
+function paintLike() {
+  const c = list[i], b = $('like');
+  if (!c) { b.hidden = true; return; }
+  b.hidden = false;
+  const on = isLiked(c.n);
+  b.textContent = on ? '♥ Liked' : '♡ Like';
+  b.disabled = on;
+}
+
+$('like').onclick = () => {
+  const c = list[i];
+  if (!c || isLiked(c.n)) return;
+  likedNow.add(c.n);
+  try { localStorage.setItem('fp-liked-' + c.n, '1'); } catch (e) {}
+  track(c, 'like-card-');
+  paintLike();
+};
 
 function track(c, prefix) {
   try {
