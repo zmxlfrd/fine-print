@@ -100,6 +100,14 @@ const CARDS = [
       "If it doesn’t work, I’ll have to accept that I was reasonable all along. Fuck that."
     ],
     foot: "" },
+    { n: 5, date: "2026-11-27", title: "I Can’t Trust My Brain", plain: true, draft: false,
+    body: [
+      "Our brains are not reliable measures of reality. Exhibit A: there’s a blind spot in each of my eyes, right where the nerve plugs in, and I’ve never once seen it. My brain paints over the gap with a guess and doesn’t mention it. A lifetime of walking around with two holes in my vision, and the first I heard of it was a diagram. That’s scam number one.",
+      "Exhibit B: Memory is the same scam. Remembering isn’t playing back a recording, it’s rebuilding the scene from scratch every time, and every rebuild drifts a little. So the argument I won perfectly in my head probably didn’t go the way I remember. In my version I was calm and funny. In theirs I was a prick. We’re both lying and neither of us knows it.",
+      "Exhibit C: the jury is me. I’m the witness, the lawyer and the judge, and I have never once ruled against myself. Psychologists call that confirmation bias. I call it a gut feeling, which is the same thing wearing better shoes.",
+      "So next time I tell you I’m absolutely certain, remember what’s doing the certain. It’s the same organ that edited a hole out of my eye and decided I didn’t need to know."
+    ],
+    foot: "" },
 ];
 
 const $ = id => document.getElementById(id);
@@ -108,6 +116,7 @@ const fmt = d => new Date(d + "T00:00:00").toLocaleDateString(undefined, { day: 
 let list = [], i = 0;
 
 const fmtShort = d => d.slice(5, 7) + "/" + d.slice(8, 10) + "/" + d.slice(0, 4);
+const heading = c => c.plain ? c.title : 'Clause ' + c.n + ': ' + c.title;
 function init() {
   list = CARDS.slice().sort((a, b) => a.n - b.n);
   $("jump").innerHTML = list.map((c, k) => '<option value="' + k + '">Card #' + c.n + ": " + fmtShort(c.date) + "</option>").join("");
@@ -127,7 +136,7 @@ function render() {
   s.innerHTML =
     '<div class="meta"><span>Card ' + c.n + (c.draft ? '<span class="draft">Draft</span>' : "") +
     "</span><span>" + fmt(c.date) + "</span></div>" +
-    "<h2>Clause " + c.n + ": " + esc(c.title) + "</h2>" +
+    "<h2>" + esc(heading(c)) + "</h2>" +
     c.body.map(p => "<p>" + esc(p) + "</p>").join("") +
     (c.foot ? '<p class="foot">' + esc(c.foot) + "</p>" : "");
   $("count").textContent = (i + 1) + " of " + list.length;
@@ -163,7 +172,7 @@ $('like').onclick = () => {
 function track(c, prefix) {
   try {
     if (c && window.goatcounter && window.goatcounter.count) {
-      window.goatcounter.count({ path: (prefix || 'card-') + c.n, title: 'Clause ' + c.n + ': ' + c.title, event: true });
+      window.goatcounter.count({ path: (prefix || 'card-') + c.n, title: heading(c), event: true });
     }
   } catch (e) {}
 }
@@ -192,7 +201,7 @@ async function cardPng(c) {
     return out;
   };
   const tF = '400 76px ' + F_SERIF, bF = '400 30px ' + F_MONO, fF = 'italic 400 30px ' + F_MONO;
-  const titleLines = wrap('Clause ' + c.n + ': ' + c.title, tF);
+  const titleLines = wrap(heading(c), tF);
   const paras = c.body.map(p => wrap(p, bF));
   const footLines = c.foot ? wrap(c.foot, fF) : [];
   let H = W;
